@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { BottomNav } from '@/components/bottom-nav'
 import imageCompression from 'browser-image-compression'
 
 export default function UploadPage() {
@@ -55,39 +56,40 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-6 bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50">
-      <div className="text-center">
-        <h1 className="text-xl font-bold">レシートを追加</h1>
-        <p className="text-gray-500 text-sm mt-1">画像またはPDFをアップロード</p>
+    <div className="min-h-screen pb-20">
+      <div className="bg-gradient-to-br from-orange-400 to-pink-500 pt-12 pb-8 px-5">
+        <p className="text-white text-2xl font-bold">レシートを追加</p>
+        <p className="text-white/70 text-sm mt-1">画像またはPDFをアップロード</p>
       </div>
 
-      <button
-        className="w-full max-w-sm border-2 border-dashed border-orange-300 rounded-3xl p-10 text-center bg-white/60 active:bg-orange-50 transition-colors"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <p className="text-5xl mb-3">📷</p>
-        <p className="text-sm font-medium text-orange-500">タップして選択</p>
-        <p className="text-xs text-gray-400 mt-1">JPG / PNG / PDF</p>
-      </button>
+      <div className="bg-[#f7f5f2] -mt-4 rounded-t-3xl min-h-screen pt-8 px-4 flex flex-col items-center gap-6">
+        <button
+          className="w-full max-w-sm bg-white border-2 border-dashed border-orange-200 rounded-3xl py-14 flex flex-col items-center gap-3 active:bg-orange-50 transition-colors"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <span className="text-6xl">📷</span>
+          <span className="text-orange-400 font-semibold">タップして選択</span>
+          <span className="text-gray-300 text-xs">JPG / PNG / PDF</span>
+        </button>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,application/pdf"
-        capture="environment"
-        className="hidden"
-        onChange={handleChange}
-      />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,application/pdf"
+          capture="environment"
+          className="hidden"
+          onChange={handleChange}
+        />
 
-      {uploading && <p className="text-sm text-orange-500 font-medium">アップロード中...</p>}
-      {error && <p className="text-sm text-red-500">{error}</p>}
+        {uploading && (
+          <div className="text-center space-y-2">
+            <p className="text-orange-400 font-medium">アップロード中...</p>
+          </div>
+        )}
+        {error && <p className="text-sm text-red-500">{error}</p>}
+      </div>
 
-      <button
-        onClick={() => router.push('/')}
-        className="text-gray-400 text-sm underline active:opacity-60"
-      >
-        キャンセル
-      </button>
+      <BottomNav />
     </div>
   )
 }

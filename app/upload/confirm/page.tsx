@@ -1,13 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/categories'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Suspense } from 'react'
 
 type ExtractResult = {
   date: string
@@ -66,76 +62,85 @@ function ConfirmContent() {
       image_url: imageUrl,
     })
 
-    if (error) {
-      setError('保存に失敗しました')
-      setSaving(false)
-      return
-    }
+    if (error) { setError('保存に失敗しました'); setSaving(false); return }
     router.push('/')
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">AIで読み取り中...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#f7f5f2]">
+        <span className="text-5xl animate-pulse">🤖</span>
+        <p className="text-gray-400 font-medium">AIで読み取り中...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-4">
-        <p className="text-destructive font-medium">読み取りに失敗しました</p>
-        <p className="text-sm text-muted-foreground">{error}</p>
-        <Button onClick={() => router.push('/upload')}>再アップロード</Button>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4 bg-[#f7f5f2]">
+        <span className="text-5xl">😵</span>
+        <p className="text-gray-700 font-semibold">読み取りに失敗しました</p>
+        <p className="text-sm text-gray-400 text-center">{error}</p>
+        <button
+          onClick={() => router.push('/upload')}
+          className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold px-8 py-4 rounded-2xl"
+        >
+          再アップロード
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-4">
-      <h1 className="text-xl font-bold">内容を確認</h1>
+    <div className="min-h-screen bg-[#f7f5f2]">
+      <div className="bg-gradient-to-br from-orange-400 to-pink-500 pt-12 pb-8 px-5">
+        <p className="text-white text-2xl font-bold">内容を確認</p>
+        <p className="text-white/70 text-sm mt-1">内容を確認して保存してください</p>
+      </div>
 
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-base">読み取り結果</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">日付</span>
-            <span>{result?.date}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">店名</span>
-            <span>{result?.store_name}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">金額</span>
-            <span className="font-bold">{result?.amount.toLocaleString()}円</span>
-          </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">カテゴリ</span>
-            <Select value={category} onValueChange={(v) => { if (v) setCategory(v) }}>
-              <SelectTrigger className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-[#f7f5f2] -mt-4 rounded-t-3xl pt-5 px-4 space-y-3">
+        <div className="bg-white rounded-2xl divide-y divide-gray-50">
+          {[
+            { label: '日付', value: result?.date },
+            { label: '店名', value: result?.store_name },
+            { label: '金額', value: `¥${result?.amount.toLocaleString()}` },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex justify-between items-center px-4 py-3">
+              <span className="text-sm text-gray-400">{label}</span>
+              <span className="text-sm font-semibold text-gray-800">{value}</span>
+            </div>
+          ))}
 
-      <div className="flex gap-3 w-full max-w-sm">
-        <Button variant="outline" className="flex-1" onClick={() => router.push('/upload')}>
-          やり直す
-        </Button>
-        <Button className="flex-1" onClick={handleSave} disabled={saving}>
-          {saving ? '保存中...' : '保存する'}
-        </Button>
+          {/* カテゴリ選択 */}
+          <div className="flex justify-between items-center px-4 py-3">
+            <span className="text-sm text-gray-400">カテゴリ</span>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="text-sm font-semibold text-gray-800 bg-transparent border-none outline-none text-right"
+            >
+              {CATEGORIES.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={() => router.push('/upload')}
+            className="flex-1 bg-white text-gray-500 font-semibold py-4 rounded-2xl text-sm"
+          >
+            やり直す
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold py-4 rounded-2xl text-sm disabled:opacity-50"
+          >
+            {saving ? '保存中...' : '保存する'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -143,7 +148,11 @@ function ConfirmContent() {
 
 export default function ConfirmPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">読み込み中...</p></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#f7f5f2]">
+        <p className="text-gray-400">読み込み中...</p>
+      </div>
+    }>
       <ConfirmContent />
     </Suspense>
   )
