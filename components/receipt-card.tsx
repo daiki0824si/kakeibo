@@ -20,7 +20,7 @@ export function ReceiptCard({ receipt }: { receipt: Receipt }) {
   }
 
   return (
-    <div className={`rounded-2xl p-4 flex items-center justify-between shadow-sm ${style.bg}`}>
+    <div className={`rounded-2xl p-4 flex items-center justify-between shadow-sm card-hover ${style.bg}`}>
       <div className="flex items-center gap-3">
         <span className="text-2xl">{style.emoji}</span>
         <div>
@@ -38,7 +38,7 @@ export function ReceiptCard({ receipt }: { receipt: Receipt }) {
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 text-lg leading-none"
+          className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 text-lg leading-none btn-press"
         >
           ×
         </button>

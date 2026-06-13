@@ -15,7 +15,7 @@ export default function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="w-full text-left text-red-500 font-medium text-sm py-1"
+      className="w-full text-left text-red-500 font-medium text-sm py-1 btn-press"
     >
       ログアウト
     </button>

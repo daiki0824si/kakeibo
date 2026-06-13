@@ -37,7 +37,11 @@ export default function LoginButton() {
           fontSize: '18px',
           textDecoration: 'none',
           WebkitTapHighlightColor: 'transparent',
+          transition: 'transform 0.1s ease, opacity 0.1s ease',
         }}
+        onPointerDown={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(0.96)'; (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+        onPointerUp={(e) => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.opacity = '' }}
+        onPointerLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.opacity = '' }}
       >
         Googleでログイン
       </a>

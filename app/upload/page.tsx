@@ -64,7 +64,7 @@ export default function UploadPage() {
 
       <div className="bg-[#f7f5f2] -mt-4 rounded-t-3xl min-h-screen pt-8 px-4 flex flex-col items-center gap-6">
         <button
-          className="w-full max-w-sm bg-white border-2 border-dashed border-orange-200 rounded-3xl py-14 flex flex-col items-center gap-3 active:bg-orange-50 transition-colors"
+          className="w-full max-w-sm bg-white border-2 border-dashed border-orange-200 rounded-3xl py-14 flex flex-col items-center gap-3 btn-press hover:border-orange-300 hover:bg-orange-50/50 transition-colors"
           onClick={() => fileInputRef.current?.click()}
         >
           <span className="text-6xl">📷</span>

@@ -21,8 +21,8 @@ export function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-colors ${
-              active ? 'text-orange-500' : 'text-gray-400'
+            className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-all duration-150 btn-press ${
+              active ? 'text-orange-500' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             <span className="text-xl leading-none">{item.icon}</span>

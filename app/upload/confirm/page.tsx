@@ -83,7 +83,7 @@ function ConfirmContent() {
         <p className="text-sm text-gray-400 text-center">{error}</p>
         <button
           onClick={() => router.push('/upload')}
-          className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold px-8 py-4 rounded-2xl"
+          className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold px-8 py-4 rounded-2xl btn-press"
         >
           再アップロード
         </button>
@@ -129,14 +129,14 @@ function ConfirmContent() {
         <div className="flex gap-3 pt-2">
           <button
             onClick={() => router.push('/upload')}
-            className="flex-1 bg-white text-gray-500 font-semibold py-4 rounded-2xl text-sm"
+            className="flex-1 bg-white text-gray-500 font-semibold py-4 rounded-2xl text-sm btn-press hover:bg-gray-50 transition-colors"
           >
             やり直す
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold py-4 rounded-2xl text-sm disabled:opacity-50"
+            className="flex-1 bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold py-4 rounded-2xl text-sm disabled:opacity-50 btn-press"
           >
             {saving ? '保存中...' : '保存する'}
           </button>

@@ -44,7 +44,7 @@ export default function ReportPage() {
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold px-8 py-4 rounded-2xl shadow text-base disabled:opacity-50"
+              className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-bold px-8 py-4 rounded-2xl shadow text-base disabled:opacity-50 btn-press"
             >
               {loading ? '生成中...' : '今週のレポートを見る'}
             </button>
@@ -84,7 +84,7 @@ export default function ReportPage() {
 
             <button
               onClick={() => setReport(null)}
-              className="w-full text-center text-gray-400 text-sm py-2"
+              className="w-full text-center text-gray-400 text-sm py-2 btn-press"
             >
               再生成する
             </button>
