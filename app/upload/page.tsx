@@ -16,8 +16,23 @@ export default function UploadPage() {
     setProcessing(true)
 
     try {
-      const compressed = await imageCompression(file, {
+      // HEIC/HEIF → JPEG 変換
+      const isHeic = file.type === 'image/heic' || file.type === 'image/heif'
+        || /\.(heic|heif)$/i.test(file.name)
+      let inputFile = file
+      if (isHeic) {
+        const heic2any = (await import('heic2any')).default
+        const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 })
+        inputFile = new File(
+          [blob instanceof Blob ? blob : (blob as Blob[])[0]],
+          file.name.replace(/\.(heic|heif)$/i, '.jpg'),
+          { type: 'image/jpeg' }
+        )
+      }
+
+      const compressed = await imageCompression(inputFile, {
         maxWidthOrHeight: 1200,
+        maxSizeMB: 2,
         useWebWorker: true,
       })
 
