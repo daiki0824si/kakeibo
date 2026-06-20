@@ -1,47 +1,41 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-import { CATEGORIES } from '@/lib/categories'
 import { NextResponse } from 'next/server'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: '未認証' }, { status: 401 })
+  const { base64, mimeType } = await request.json()
+  if (!base64 || !mimeType) {
+    return NextResponse.json({ error: '画像データが不正です' }, { status: 400 })
+  }
 
-  const { imageUrl, mimeType } = await request.json()
-
-  // Supabase StorageからファイルをDL
-  const path = imageUrl.split('/receipts/')[1]
-  const { data, error } = await supabase.storage.from('receipts').download(path)
-  if (error || !data) return NextResponse.json({ error: 'ファイルの取得に失敗しました' }, { status: 500 })
-
-  const buffer = await data.arrayBuffer()
-  const base64 = Buffer.from(buffer).toString('base64')
-
-  const isPdf = mimeType === 'application/pdf'
+  const supabase = createClient()
+  const { data: categories } = await supabase.from('categories').select('name').order('name')
+  const categoryNames = (categories ?? []).map((c: { name: string }) => c.name).join('|')
 
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5',
-    max_tokens: 512,
+    max_tokens: 1024,
     messages: [
       {
         role: 'user',
         content: [
-          isPdf
-            ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
-            : { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: mimeType, data: base64 },
+          },
           {
             type: 'text',
-            text: `以下はレシートまたは領収書です。
-次のJSONのみを返してください（説明不要）:
+            text: `このレシートを解析して、以下のJSON形式のみを返してください（説明不要）:
 {
   "date": "YYYY-MM-DD",
   "store_name": "店名",
-  "amount": 金額(整数・円),
-  "category": "${CATEGORIES.join('|')}"
+  "items": [
+    { "name": "品目名", "quantity": 数量(整数), "unit_price": 単価(整数・円), "subtotal": 小計(整数・円), "category": "${categoryNames}" }
+  ]
 }
+日付が不明な場合は今日の日付、数量不明は1、カテゴリは最も近いものを選んでください。
 抽出できない場合は {"error": "理由"} を返してください。`,
           },
         ],
@@ -55,8 +49,9 @@ export async function POST(request: Request) {
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('JSON not found')
     const result = JSON.parse(jsonMatch[0])
-    return NextResponse.json({ result, rawResponse: text })
+    if (result.error) return NextResponse.json({ error: result.error }, { status: 422 })
+    return NextResponse.json({ result })
   } catch {
-    return NextResponse.json({ error: '抽出結果のパースに失敗しました', rawResponse: text }, { status: 422 })
+    return NextResponse.json({ error: '解析に失敗しました', rawResponse: text }, { status: 422 })
   }
 }

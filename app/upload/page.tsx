@@ -2,51 +2,51 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { BottomNav } from '@/components/bottom-nav'
 import imageCompression from 'browser-image-compression'
+import { BottomNav } from '@/components/bottom-nav'
 
 export default function UploadPage() {
-  const [uploading, setUploading] = useState(false)
+  const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleFile = async (file: File) => {
     setError(null)
-    setUploading(true)
+    setProcessing(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('未認証')
+      const compressed = await imageCompression(file, {
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+      })
 
-      let uploadFile = file
-      const mimeType = file.type
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          resolve(result.split(',')[1])
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(compressed)
+      })
 
-      if (file.type.startsWith('image/')) {
-        uploadFile = await imageCompression(file, {
-          maxWidthOrHeight: 1200,
-          useWebWorker: true,
-        })
-      }
+      const mimeType = compressed.type || file.type
 
-      const ext = file.name.split('.').pop()
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64, mimeType }),
+      })
 
-      const { error: uploadError } = await supabase.storage
-        .from('receipts')
-        .upload(path, uploadFile, { contentType: mimeType })
+      const json = await res.json()
+      if (!res.ok || !json.result) throw new Error(json.error ?? '読み取りに失敗しました')
 
-      if (uploadError) throw new Error('アップロードに失敗しました')
-
-      const { data: { publicUrl } } = supabase.storage.from('receipts').getPublicUrl(path)
-
-      const params = new URLSearchParams({ imageUrl: publicUrl, mimeType })
-      router.push(`/upload/confirm?${params}`)
+      sessionStorage.setItem('extractedReceipt', JSON.stringify(json.result))
+      router.push('/upload/confirm')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'エラーが発生しました')
-      setUploading(false)
+      setProcessing(false)
     }
   }
 
@@ -59,34 +59,36 @@ export default function UploadPage() {
     <div className="min-h-screen pb-20">
       <div className="bg-gradient-to-br from-orange-400 to-pink-500 pt-12 pb-8 px-5">
         <p className="text-white text-2xl font-bold">レシートを追加</p>
-        <p className="text-white/70 text-sm mt-1">画像またはPDFをアップロード</p>
+        <p className="text-white/70 text-sm mt-1">写真を撮って品目を自動読み取り</p>
       </div>
 
       <div className="bg-[#f7f5f2] -mt-4 rounded-t-3xl min-h-screen pt-8 px-4 flex flex-col items-center gap-6">
         <button
-          className="w-full max-w-sm bg-white border-2 border-dashed border-orange-200 rounded-3xl py-14 flex flex-col items-center gap-3 btn-press hover:border-orange-300 hover:bg-orange-50/50 transition-colors"
+          className="w-full max-w-sm bg-white border-2 border-dashed border-orange-200 rounded-3xl py-14 flex flex-col items-center gap-3 btn-press hover:border-orange-300 hover:bg-orange-50/50 transition-colors disabled:opacity-50"
           onClick={() => fileInputRef.current?.click()}
+          disabled={processing}
         >
-          <span className="text-6xl">📷</span>
-          <span className="text-orange-400 font-semibold">タップして選択</span>
-          <span className="text-gray-300 text-xs">JPG / PNG / PDF</span>
+          <span className="text-6xl">{processing ? '🤖' : '📷'}</span>
+          <span className="text-orange-400 font-semibold">
+            {processing ? 'AI読み取り中...' : 'タップして撮影・選択'}
+          </span>
+          <span className="text-gray-300 text-xs">JPG / PNG</span>
         </button>
 
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,application/pdf"
+          accept="image/*"
           capture="environment"
           className="hidden"
           onChange={handleChange}
         />
 
-        {uploading && (
-          <div className="text-center space-y-2">
-            <p className="text-orange-400 font-medium">アップロード中...</p>
-          </div>
+        {error && (
+          <p className="text-sm text-red-500 text-center bg-red-50 rounded-2xl px-4 py-3 w-full max-w-sm">
+            {error}
+          </p>
         )}
-        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 
       <BottomNav />
