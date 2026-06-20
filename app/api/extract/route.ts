@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(request: Request) {
   try {
@@ -15,13 +15,20 @@ export async function POST(request: Request) {
     const { data: categories } = await supabase.from('categories').select('name').order('name')
     const categoryNames = (categories ?? []).map((c: { name: string }) => c.name).join('|')
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
-    const result = await model.generateContent([
-      {
-        inlineData: { mimeType, data: base64 },
-      },
-      `このレシートを解析して、以下のJSON形式のみを返してください（説明不要）:
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mimeType, data: base64 },
+            },
+            {
+              type: 'text',
+              text: `このレシートを解析して、以下のJSON形式のみを返してください（説明不要）:
 {
   "date": "YYYY-MM-DD",
   "store_name": "店名",
@@ -31,17 +38,20 @@ export async function POST(request: Request) {
 }
 日付が不明な場合は今日の日付、数量不明は1、カテゴリは最も近いものを選んでください。
 抽出できない場合は {"error": "理由"} を返してください。`,
-    ])
+            },
+          ],
+        },
+      ],
+    })
 
-    const text = result.response.text()
-
+    const text = message.content[0].type === 'text' ? message.content[0].text : ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       return NextResponse.json({ error: '読み取り結果を解析できませんでした', rawResponse: text }, { status: 422 })
     }
-    const parsed = JSON.parse(jsonMatch[0])
-    if (parsed.error) return NextResponse.json({ error: parsed.error }, { status: 422 })
-    return NextResponse.json({ result: parsed })
+    const result = JSON.parse(jsonMatch[0])
+    if (result.error) return NextResponse.json({ error: result.error }, { status: 422 })
+    return NextResponse.json({ result })
 
   } catch (e) {
     const message = e instanceof Error ? e.message : '不明なエラー'
