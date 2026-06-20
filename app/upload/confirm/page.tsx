@@ -46,6 +46,16 @@ export default function ConfirmPage() {
     setItems(prev => prev.filter((_, i) => i !== index))
   }
 
+  const addItem = () => {
+    setItems(prev => [...prev, {
+      name: '',
+      quantity: 1,
+      unit_price: 0,
+      subtotal: 0,
+      category: categories[0]?.name ?? '',
+    }])
+  }
+
   const handleSave = async () => {
     if (!receipt || items.length === 0) return
     setSaving(true)
@@ -173,6 +183,14 @@ export default function ConfirmPage() {
             </div>
           ))}
         </div>
+
+        {/* 品目追加ボタン */}
+        <button
+          onClick={addItem}
+          className="w-full bg-white border-2 border-dashed border-orange-200 text-orange-400 font-semibold py-3 rounded-2xl text-sm btn-press hover:border-orange-300 hover:bg-orange-50/50 transition-colors"
+        >
+          ＋ 品目を追加
+        </button>
 
         {error && (
           <p className="text-sm text-red-500 text-center bg-red-50 rounded-2xl px-4 py-3">
