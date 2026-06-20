@@ -54,7 +54,12 @@ export default function UploadPage() {
         body: JSON.stringify({ base64, mimeType }),
       })
 
-      const json = await res.json()
+      let json: { result?: unknown; error?: string }
+      try {
+        json = await res.json()
+      } catch {
+        throw new Error(`サーバーエラー (HTTP ${res.status})`)
+      }
       if (!res.ok || !json.result) throw new Error(json.error ?? '読み取りに失敗しました')
 
       sessionStorage.setItem('extractedReceipt', JSON.stringify(json.result))
