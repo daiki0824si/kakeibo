@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const { data: categories } = await supabase.from('categories').select('name').order('name')
     const categoryNames = (categories ?? []).map((c: { name: string }) => c.name).join('|')
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
     const result = await model.generateContent([
       {
