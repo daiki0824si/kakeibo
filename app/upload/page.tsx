@@ -8,7 +8,8 @@ import { BottomNav } from '@/components/bottom-nav'
 export default function UploadPage() {
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   const handleFile = async (file: File) => {
@@ -82,27 +83,33 @@ export default function UploadPage() {
         <p className="text-white/70 text-sm mt-1">写真を撮って品目を自動読み取り</p>
       </div>
 
-      <div className="bg-[#f7f5f2] -mt-4 rounded-t-3xl min-h-screen pt-8 px-4 flex flex-col items-center gap-6">
-        <button
-          className="w-full max-w-sm bg-white border-2 border-dashed border-orange-200 rounded-3xl py-14 flex flex-col items-center gap-3 btn-press hover:border-orange-300 hover:bg-orange-50/50 transition-colors disabled:opacity-50"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={processing}
-        >
-          <span className="text-6xl">{processing ? '🤖' : '📷'}</span>
-          <span className="text-orange-400 font-semibold">
-            {processing ? 'AI読み取り中...' : 'タップして撮影・選択'}
-          </span>
-          <span className="text-gray-300 text-xs">JPG / PNG</span>
-        </button>
+      <div className="bg-[#f7f5f2] -mt-4 rounded-t-3xl min-h-screen pt-8 px-4 flex flex-col items-center gap-4">
+        {processing ? (
+          <div className="w-full max-w-sm bg-white border-2 border-dashed border-orange-200 rounded-3xl py-14 flex flex-col items-center gap-3">
+            <span className="text-6xl">🤖</span>
+            <span className="text-orange-400 font-semibold">AI読み取り中...</span>
+          </div>
+        ) : (
+          <div className="w-full max-w-sm flex flex-col gap-3">
+            <button
+              className="w-full bg-white border-2 border-dashed border-orange-200 rounded-3xl py-10 flex flex-col items-center gap-3 btn-press hover:border-orange-300 hover:bg-orange-50/50 transition-colors"
+              onClick={() => cameraInputRef.current?.click()}
+            >
+              <span className="text-5xl">📷</span>
+              <span className="text-orange-400 font-semibold">撮影する</span>
+            </button>
+            <button
+              className="w-full bg-white border-2 border-dashed border-orange-200 rounded-3xl py-10 flex flex-col items-center gap-3 btn-press hover:border-orange-300 hover:bg-orange-50/50 transition-colors"
+              onClick={() => galleryInputRef.current?.click()}
+            >
+              <span className="text-5xl">🖼️</span>
+              <span className="text-orange-400 font-semibold">アルバムから選ぶ</span>
+            </button>
+          </div>
+        )}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={handleChange}
-        />
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleChange} />
+        <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
 
         {error && (
           <p className="text-sm text-red-500 text-center bg-red-50 rounded-2xl px-4 py-3 w-full max-w-sm">
