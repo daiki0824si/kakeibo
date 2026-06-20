@@ -39,6 +39,14 @@ export function ReceiptCard({ receipt }: { receipt: ReceiptWithItems }) {
             <p className="font-bold text-base text-orange-500">¥{total.toLocaleString()}</p>
             <p className="text-xs text-gray-400">{receipt.receipt_items.length}品目</p>
           </div>
+          <button
+            onClick={e => { e.stopPropagation(); handleDelete() }}
+            disabled={deleting}
+            className="text-gray-300 hover:text-red-400 disabled:opacity-50 btn-press p-1"
+            aria-label="削除"
+          >
+            🗑️
+          </button>
           <span className="text-gray-300 text-sm">{expanded ? '▲' : '▼'}</span>
         </div>
       </button>
